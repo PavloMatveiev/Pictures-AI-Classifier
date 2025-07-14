@@ -26,7 +26,10 @@ import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
+
+
 from GUI.main_window import *
+from core.image_data import ImageData
 
 
 def ask_chatgpt_for_folder(img_path: Path) -> str:
@@ -85,14 +88,16 @@ def main() -> None:
 
     # 3. Classification and transfer of files
     errors = []
-    for img in image_paths:
-        img_path = Path(img)
+
+    img_data_list = [ImageData(Path(p)) for p in image_paths]
+    for img_data in img_data_list:
         try:
-            label = ask_chatgpt_for_folder(img_path)
+            label = ask_chatgpt_for_folder(img_data.path)
+            img_data.category = label
             dest_subdir = destination_path / label
-            safe_move(img_path, dest_subdir)
+            safe_move(img_data.path, dest_subdir)
         except Exception as exc:
-            errors.append((img_path, str(exc)))
+            errors.append((img_data.path, str(exc)))
 
     if errors:
         error_lines = "\n".join(f"{p}: {e}" for p, e in errors)
