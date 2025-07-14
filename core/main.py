@@ -23,6 +23,7 @@ import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
+from GUI.main_window import *
 
 
 def ask_chatgpt_for_folder(img_path: Path) -> str:
@@ -53,8 +54,10 @@ def safe_move(src: Path, dst_dir: Path) -> None:
 
 
 def main() -> None:
-    root = tk.Tk()
-    root.withdraw()  # hide the main window
+    # root = tk.Tk()
+    # root.withdraw()  # hide the main window
+    testObj = window()
+    testObj.mainloop()
 
     # 1. Selecting images
     filetypes = [
