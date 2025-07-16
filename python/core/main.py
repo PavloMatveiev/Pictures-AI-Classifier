@@ -28,7 +28,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 
 
-from GUI.main_window import *
+# from GUI.main_window import *
 from core.image_data import ImageData
 
 
@@ -104,55 +104,6 @@ def main() -> None:
         return
 
     move_all(Path(source), Path(destination))
-
-def main_old() -> None:
-    # root = tk.Tk()
-    # root.withdraw()  # hide the main window
-    # testObj = window()
-    # testObj.mainloop()
-
-    # 1. Selecting images
-    filetypes = [
-        ("Images", "*.png *.jpg *.jpeg *.gif *.bmp *.tiff"),
-        ("All files", "*.*"),
-    ]
-    image_paths = filedialog.askopenfilenames(
-        title="Select images to transfer",
-        filetypes=filetypes,
-    )
-    if not image_paths:
-        messagebox.showinfo("Cancel", "No files selected - operation cancelled.")
-        return
-
-    # 2. Selecting a destination folder
-    destination_dir = filedialog.askdirectory(title="Select Destination Folder")
-    if not destination_dir:
-        messagebox.showinfo("Cancel", "No folder selected - operation cancelled.")
-        return
-
-    destination_path = Path(destination_dir)
-
-    # 3. Classification and transfer of files
-    errors = []
-
-    img_data_list = [ImageData(Path(p)) for p in image_paths]
-    for img_data in img_data_list:
-        try:
-            label = ask_chatgpt_for_folder(img_data.path)
-            img_data.category = label
-            dest_subdir = destination_path / label
-            safe_move(img_data.path, dest_subdir)
-        except Exception as exc:
-            errors.append((img_data.path, str(exc)))
-
-    if errors:
-        error_lines = "\n".join(f"{p}: {e}" for p, e in errors)
-        messagebox.showwarning(
-            "Transfer errors", 
-            f"Could not move some files:\n\n{error_lines}",
-        )
-    else:
-        messagebox.showinfo("Done", "All images have been successfully classified and transferred!")
 
 
 if __name__ == "__main__":
