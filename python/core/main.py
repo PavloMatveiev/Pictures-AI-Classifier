@@ -26,7 +26,10 @@ import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
+
+
 from GUI.main_window import *
+from core.image_data import ImageData
 
 
 def ask_chatgpt_for_folder(img_path: Path) -> str:
@@ -55,12 +58,58 @@ def safe_move(src: Path, dst_dir: Path) -> None:
             counter += 1
     shutil.move(str(src), target)
 
+def move_all(src_folder: Path, dst_folder: Path) -> None:
+    """method that should be called when transfering all required files from source folder to destinations"""
+
+    extentions = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"]
+    img_files_data = [ImageData(f) for f in src_folder.iterdir() if f.is_file() and f.suffix in extentions]
+
+    if not img_files_data:
+        messagebox.showinfo("No imges", "No files found in source folder with possible extentions")
+        return
+    
+    errors = []
+    for img_data in img_files_data:
+        try:
+            label = ask_chatgpt_for_folder(img_data.path)
+            img_data.category = label
+            dest_subdir = dst_folder / label
+            safe_move(img_data.path, dest_subdir)
+        except Exception as exc:
+            errors.append((img_data.path, str(exc)))
+
+    if errors:
+        error_lines = "\n".join(f"{p}: {e}" for p, e in errors)
+        messagebox.showwarning(
+            "Transfer errors"
+            f"Could not move some files:\n\n{error_lines}",
+        )
+    else:
+        messagebox.showinfo("Done", "All images have been successfully classified and transferred!")
 
 def main() -> None:
     # root = tk.Tk()
+    # root.withdraw()  # Hide root window
+
+    # 1. Select source folder
+    source = filedialog.askdirectory(title="Select Source Folder")
+    if not source:
+        messagebox.showinfo("Cancel", "No files selected - operation cancelled.")
+        return
+
+    # 2. Select destination folder
+    destination = filedialog.askdirectory(title="Select Destination Folder")
+    if not destination:
+        messagebox.showinfo("Cancel", "No folder selected - operation cancelled.")
+        return
+
+    move_all(Path(source), Path(destination))
+
+def main_old() -> None:
+    # root = tk.Tk()
     # root.withdraw()  # hide the main window
-    testObj = window()
-    testObj.mainloop()
+    # testObj = window()
+    # testObj.mainloop()
 
     # 1. Selecting images
     filetypes = [
@@ -85,19 +134,21 @@ def main() -> None:
 
     # 3. Classification and transfer of files
     errors = []
-    for img in image_paths:
-        img_path = Path(img)
+
+    img_data_list = [ImageData(Path(p)) for p in image_paths]
+    for img_data in img_data_list:
         try:
-            label = ask_chatgpt_for_folder(img_path)
+            label = ask_chatgpt_for_folder(img_data.path)
+            img_data.category = label
             dest_subdir = destination_path / label
-            safe_move(img_path, dest_subdir)
+            safe_move(img_data.path, dest_subdir)
         except Exception as exc:
-            errors.append((img_path, str(exc)))
+            errors.append((img_data.path, str(exc)))
 
     if errors:
         error_lines = "\n".join(f"{p}: {e}" for p, e in errors)
         messagebox.showwarning(
-            "Transfer errors" 
+            "Transfer errors", 
             f"Could not move some files:\n\n{error_lines}",
         )
     else:
