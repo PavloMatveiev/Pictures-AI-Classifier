@@ -14,7 +14,6 @@ class window(tk.Tk):
 
         container = tk.Frame(self, height=400, width=600)
         container.pack(side="top", fill="both", expand=True)
-
         
 
 
